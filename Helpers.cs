@@ -8,7 +8,20 @@ namespace MovieCatalog
 {
     class Helpers
     {
+        public static void TryCatch(Action CodeBlockToWrap, Action<Exception> OnException=null)
+        {
+            try
+            {
+                CodeBlockToWrap();
+            }
+            catch(Exception exp)
+            {
+                if(OnException.IsNotNull())
+                    OnException(exp);
+            }
+        }
     }
+
     public static class Extentions
     {
         public static bool IsNull(this object obj)

@@ -62,9 +62,11 @@
     </ApplicationDefinition>
     <Compile Include="DataTypes\GenericKeyValuePair.cs" />
     <Compile Include="DataTypes\MovieTaskProgress.cs" />
+    <Compile Include="DataTypes\UIDataBase.cs" />
     <Compile Include="DelegateCommand.cs" />
     <Compile Include="Logic\MovieFactory.cs" />
     <Compile Include="Logic\MovieHelper.cs" />
+    <Compile Include="Resources\ListToTextConverter.cs" />
     <Compile Include="Scanner.xaml.cs">
       <DependentUpon>Scanner.xaml</DependentUpon>
     </Compile>

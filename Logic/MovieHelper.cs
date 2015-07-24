@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using MovieCatalog.DataTypes;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -61,20 +62,23 @@ namespace MovieCatalog.Logic
                 HtmlDocument doc = new HtmlDocument();
                 doc.LoadHtml(queryHtmlResult);
 
-                movieData.ImdbName = doc.DocumentNode.SelectSingleNode(@"//span[@itemprop='name']").InnerText.Trim();
-                movieData.Rating = doc.DocumentNode.SelectSingleNode(@"//span[@itemprop='ratingValue']").InnerText.Trim();
-                movieData.ImageUrl = doc.DocumentNode.SelectSingleNode(@"//img[@itemprop='image']").Attributes["src"].Value.Trim();
-                movieData.Year = doc.DocumentNode.SelectSingleNode(@"//h1[@class='header']/span[@class='nobr']/a").InnerText.Trim();
+                Helpers.TryCatch(() => movieData.ImdbName = doc.DocumentNode.SelectSingleNode(@"//span[@itemprop='name']").InnerText.Trim());
+                Helpers.TryCatch(() => movieData.Rating = doc.DocumentNode.SelectSingleNode(@"//span[@itemprop='ratingValue']").InnerText.Trim());
+                Helpers.TryCatch(() => movieData.ImageUrl = doc.DocumentNode.SelectSingleNode(@"//img[@itemprop='image']").Attributes["src"].Value.Trim());
+                Helpers.TryCatch(() => movieData.Year = doc.DocumentNode.SelectSingleNode(@"//h1[@class='header']/span[@class='nobr']/a").InnerText.Trim());
 
-                doc.DocumentNode.SelectSingleNode(@"//div[@itemprop='description']/p/em").Remove();
-                movieData.StoryLine = doc.DocumentNode.SelectSingleNode(@"//div[@itemprop='description']/p").InnerText.Trim();
+                Helpers.TryCatch(() => doc.DocumentNode.SelectSingleNode(@"//div[@itemprop='description']/p/em").Remove());
+                Helpers.TryCatch(() => movieData.StoryLine = doc.DocumentNode.SelectSingleNode(@"//div[@itemprop='description']/p").InnerText.Trim());
 
-                var genreNodes = doc.DocumentNode.SelectNodes(@"//div[@itemprop='genre']/a");
-                movieData.Genres = new List<string>();
-                foreach (var node in genreNodes)
+                Helpers.TryCatch(() =>
                 {
-                    movieData.Genres.Add(node.InnerText.Trim());
-                }
+                    var genreNodes = doc.DocumentNode.SelectNodes(@"//div[@itemprop='genre']/a");
+                    movieData.Genres = new List<string>();
+                    foreach (var node in genreNodes)
+                    {
+                        movieData.Genres.Add(node.InnerText.Trim());
+                    }
+                });
             }
 
             return movieData;

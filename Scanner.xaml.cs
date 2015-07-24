@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -49,17 +50,55 @@ namespace MovieCatalog
         public ObservableCollection<GenericKeyValuePair<string, bool>> MovieScanPaths
         {
             get { return _movieScanPaths; }
-            set { _movieScanPaths = value; }
+            set
+            {
+                _movieScanPaths = value;
+                SetPropertyChangedOnMovieScanPaths();
+            }
+        }
+
+        private void SetPropertyChangedOnMovieScanPaths()
+        {
+            foreach (var scanPath in _movieScanPaths)
+            {
+                scanPath.PropertyChanged += scanPath_PropertyChanged;
+            }
+        }
+
+        private void scanPath_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            RaizePropertyChanged("SelectAll");
         }
 
         public List<MovieData> PotentialMoviePaths { get; set; }
 
+        public bool SelectAll
+        {
+            get
+            {
+                return _movieScanPaths.All(p => p.Value);
+            }
+            set
+            {
+                foreach (var path in MovieScanPaths)
+                {
+                    path.Value = value;
+                }
+                RaizePropertyChanged("MovieScanPaths");
+            }
+        }
 
         void InitData()
         {
             _settings = SettingsHelper.LoadSettings();
 
             MovieScanPaths = new ObservableCollection<GenericKeyValuePair<string, bool>>(_settings.MovieScanPaths);
+            MovieScanPaths.CollectionChanged += MovieScanPaths_CollectionChanged;
+        }
+
+        private void MovieScanPaths_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            SetPropertyChangedOnMovieScanPaths();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -104,13 +143,16 @@ namespace MovieCatalog
             {
                 ProgressMessage = string.Format("{0}/{1} - {2}", p.Current, p.Total, p.Message);
                 RaizePropertyChanged("ProgressMessage");
+                RaizePropertyChanged("PotentialMoviePaths");
             });
 
             var rootPaths = MovieScanPaths.Where(m => m.Value).Select(m => m.Key);
 
             PotentialMoviePaths = await Task.Run<List<MovieData>>(() =>
             {
-                return MovieFactory.GetMoviesData(rootPaths.ToList(), progressIndicator);
+                var movieData = MovieFactory.GetMoviesData(rootPaths.ToList(), progressIndicator);
+                
+                return movieData;
             });
 
             PotentialMoviePaths.Sort(new MovieNameComparer());

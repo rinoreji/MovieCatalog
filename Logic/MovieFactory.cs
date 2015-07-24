@@ -1,5 +1,6 @@
 ﻿using MovieCatalog.DataTypes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -68,16 +69,22 @@ namespace MovieCatalog.Logic
 
         private static void UpdateMovieData(List<MovieData> movies, IProgress<MovieTaskProgress> progress)
         {
-            int processedCount = 0;
+            var items = new ConcurrentBag<string>();
             Parallel.ForEach<MovieData>(movies, (m) =>
             {
-                MovieHelper.SetMovieUrl(m);
-                MovieHelper.SetMovieDetails(m);
-
                 MovieTaskProgress taskProgress = new MovieTaskProgress();
                 taskProgress.Total = movies.Count;
+                taskProgress.Message = string.Format("Processing movie: {0}", m.ExtractedName);
+                Helpers.TryCatch(() => MovieHelper.SetMovieUrl(m));
+                if (items.FirstOrDefault((i) => i == m.FullPath).IsNull())
+                {
+                    items.Add(m.FullPath);
+                }
+                taskProgress.Current = items.Count;
+                progress.Report(taskProgress);
+                //Helpers.TryCatch(()=>MovieHelper.SetMovieDetails(m));
+
                 taskProgress.Message = string.Format("Processed movie: {0}", m.ExtractedName);
-                taskProgress.Current = ++processedCount;
 
                 progress.Report(taskProgress);
             });

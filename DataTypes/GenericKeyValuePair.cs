@@ -1,12 +1,16 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace MovieCatalog.DataTypes
 {
     [Serializable]
-    public class GenericKeyValuePair<TKey, TValue>
+    public class GenericKeyValuePair<TKey, TValue> : UIDataBase
     {
-        public TKey Key { get; set; }
-        public TValue Value { get; set; }
+        private TKey _key;
+        public TKey Key { get { return _key; } set { _key = value; RaizePropertyChanged("Key"); } }
+
+        private TValue _value;
+        public TValue Value { get { return _value; } set { _value = value; RaizePropertyChanged("Value"); } }
 
         public GenericKeyValuePair() { }
         public GenericKeyValuePair(TKey key, TValue value)
