@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -42,6 +43,22 @@ namespace MovieCatalog
                         }
                         else
                             window.Close();
+                });
+            }
+        }
+
+        public ICommand OpenFolderCommand
+        {
+            get
+            {
+                return new DelegateCommand((p) => {
+                    var folderFullPath = p as string;
+                    if (folderFullPath.IsNotNullOrWhiteSpace() && Directory.Exists(folderFullPath))
+                    {
+                        var processInfo = new ProcessStartInfo(@folderFullPath);
+                        processInfo.WindowStyle = ProcessWindowStyle.Normal;
+                        Process.Start(processInfo);
+                    }
                 });
             }
         }

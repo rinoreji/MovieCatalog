@@ -82,7 +82,7 @@ namespace MovieCatalog.Logic
                 }
                 taskProgress.Current = items.Count;
                 progress.Report(taskProgress);
-                //Helpers.TryCatch(()=>MovieHelper.SetMovieDetails(m));
+                Helpers.TryCatch(() => MovieHelper.SetMovieDetails(m));
 
                 taskProgress.Message = string.Format("Processed movie: {0}", m.ExtractedName);
 

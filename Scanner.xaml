@@ -16,7 +16,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width=".3*"/>
             </Grid.ColumnDefinitions>
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer  VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding PotentialMoviePaths}">
                     <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -34,6 +34,10 @@
                                 <Run Text=" ("/>
                                 <Run Text="{Binding Year}"/>
                                 <Run Text=")"/>
+                                    <TextBlock.InputBindings>
+                                        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenFolderCommand, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                                                      CommandParameter="{Binding FullPath}"/>
+                                    </TextBlock.InputBindings>
                             </TextBlock>
 
                             <TextBlock Grid.Column="1" Text="{Binding Rating}"  Margin="10 0 10 0"/>
@@ -62,7 +66,7 @@
                                         <ColumnDefinition Width="auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="{Binding Key}"/>
-                                    <CheckBox Grid.Column="1" IsChecked="{Binding Value, Mode=TwoWay}"/>
+                                    <CheckBox Grid.Column="1" IsChecked="{Binding Value}"/>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
