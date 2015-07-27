@@ -1,5 +1,6 @@
 ﻿using MovieCatalog.DataTypes;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml.Serialization;
@@ -8,15 +9,15 @@ namespace MovieCatalog
 {
     class Helpers
     {
-        public static void TryCatch(Action CodeBlockToWrap, Action<Exception> OnException=null)
+        public static void TryCatch(Action CodeBlockToWrap, Action<Exception> OnException = null)
         {
             try
             {
                 CodeBlockToWrap();
             }
-            catch(Exception exp)
+            catch (Exception exp)
             {
-                if(OnException.IsNotNull())
+                if (OnException.IsNotNull())
                     OnException(exp);
             }
         }
@@ -97,6 +98,32 @@ namespace MovieCatalog
             var contents = File.ReadAllText(filePath);
 
             return contents.DeserializeFromXml<Settings>();
+        }
+    }
+
+    public class DataHelper
+    {
+        const string DATABASE_FILE_NAME = @"MovieCataog.db";
+
+        public static void SaveData(List<MovieData> data)
+        {
+            var filePath = Path.Combine(new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName, "DB");
+            if (!Directory.Exists(filePath))
+                Directory.CreateDirectory(filePath);
+
+            File.WriteAllText(Path.Combine(filePath,DATABASE_FILE_NAME) , data.SerializeObjectToXML());
+        }
+
+        public static IList<MovieData> LoadData()
+        {
+            var filePath = Path.Combine(new FileInfo(Assembly.GetExecutingAssembly().Location).DirectoryName, "DB", DATABASE_FILE_NAME);
+            if (File.Exists(filePath))
+            {
+                var contents = File.ReadAllText(filePath);
+
+                return contents.DeserializeFromXml<List<MovieData>>();
+            }
+            return new List<MovieData>();
         }
     }
 }

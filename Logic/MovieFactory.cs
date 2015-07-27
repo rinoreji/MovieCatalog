@@ -1,4 +1,5 @@
-﻿using MovieCatalog.DataTypes;
+﻿using MovieCatalog.Algorithms;
+using MovieCatalog.DataTypes;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -36,20 +37,6 @@ namespace MovieCatalog.Logic
             return childDirectories;
         }
 
-        public static List<MovieData> GetMoviesData(List<string> rootPaths)
-        {
-            var data = new List<MovieData>();
-            foreach (var path in GetPotentialFilmPaths(rootPaths))
-            {
-                var movie = new MovieData { FullPath = path };
-                movie.ExtractedName = new DirectoryInfo(path).Name.GetSanitizeName();
-
-                data.Add(MovieHelper.SetMovieUrl(movie));
-            }
-
-            return data;
-        }
-
         public static List<MovieData> GetMoviesData(List<string> rootPaths, IProgress<MovieTaskProgress> progress)
         {
             var data = new List<MovieData>();
@@ -57,14 +44,31 @@ namespace MovieCatalog.Logic
 
             foreach (var path in moviePaths)
             {
-                var movie = new MovieData { FullPath = path };
+                var movie = new MovieData();
+                movie.PathInfo = GetPathInfo(path);
                 movie.ExtractedName = new DirectoryInfo(path).Name.GetSanitizeName();
                 data.Add(movie);
             }
 
-            UpdateMovieData(data, progress);
+            //UpdateMovieData(data, progress);
 
             return data;
+        }
+
+        private static MediaPathInfo GetPathInfo(string folderFullPath)
+        {
+            var pathInfo = new MediaPathInfo();
+            pathInfo.FullPath = folderFullPath;
+            Helpers.TryCatch(() =>
+            {
+                var driveInfo = new DriveInfo(folderFullPath);
+                pathInfo.MachineName = Environment.MachineName;
+                pathInfo.DriveFormat = driveInfo.DriveFormat;
+                pathInfo.DriveType = driveInfo.DriveType;
+                pathInfo.Name = driveInfo.Name;
+                pathInfo.VolumnLabel = driveInfo.VolumeLabel;
+            });
+            return pathInfo;
         }
 
         private static void UpdateMovieData(List<MovieData> movies, IProgress<MovieTaskProgress> progress)
@@ -76,9 +80,9 @@ namespace MovieCatalog.Logic
                 taskProgress.Total = movies.Count;
                 taskProgress.Message = string.Format("Processing movie: {0}", m.ExtractedName);
                 Helpers.TryCatch(() => MovieHelper.SetMovieUrl(m));
-                if (items.FirstOrDefault((i) => i == m.FullPath).IsNull())
+                if (items.FirstOrDefault((i) => i == m.PathInfo.FullPath).IsNull())
                 {
-                    items.Add(m.FullPath);
+                    items.Add(m.PathInfo.FullPath);
                 }
                 taskProgress.Current = items.Count;
                 progress.Report(taskProgress);
@@ -88,6 +92,34 @@ namespace MovieCatalog.Logic
 
                 progress.Report(taskProgress);
             });
+        }
+
+        public static List<List<MovieDuplicateInfo>> PotentialDuplicates(List<MovieData> input)
+        {
+            var data = new List<List<MovieDuplicateInfo>>();
+            for (int i = 0; i < input.Count; i++)
+            {
+                var currentItem = input[i];
+                var duplicates = new List<MovieDuplicateInfo>();
+
+                if (!data.Any(d => d.Any(dd => dd.Movie.PathInfo.FullPath == currentItem.PathInfo.FullPath)))
+                {
+                    for (int j = i + 1; j < input.Count; j++)
+                    {
+                        duplicates.Add(new MovieDuplicateInfo()
+                        {
+                            Movie = input[j],
+                            ChangeCost = LevenshteinDistance.Compute(currentItem.ExtractedName, input[j].ExtractedName)
+                        });
+                    }
+                    duplicates.Insert(0, new MovieDuplicateInfo() { Movie = currentItem, ChangeCost = 0 });
+                    duplicates.RemoveAll(d => d.ChangeCost > 4);
+                    if (duplicates.Count > 1)
+                        data.Add(duplicates);
+                }
+            }
+
+            return data;
         }
     }
 }

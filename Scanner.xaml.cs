@@ -89,6 +89,8 @@ namespace MovieCatalog
 
         public List<MovieData> PotentialMoviePaths { get; set; }
 
+        public List<List<MovieDuplicateInfo>> PotentialDuplicates { get; set; }
+
         public bool SelectAll
         {
             get
@@ -111,6 +113,8 @@ namespace MovieCatalog
 
             MovieScanPaths = new ObservableCollection<GenericKeyValuePair<string, bool>>(_settings.MovieScanPaths);
             MovieScanPaths.CollectionChanged += MovieScanPaths_CollectionChanged;
+
+            PotentialMoviePaths = DataHelper.LoadData().ToList();
         }
 
         private void MovieScanPaths_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -174,12 +178,16 @@ namespace MovieCatalog
 
             PotentialMoviePaths.Sort(new MovieNameComparer());
             RaizePropertyChanged("PotentialMoviePaths");
+
+            PotentialDuplicates = MovieFactory.PotentialDuplicates(PotentialMoviePaths);
+            RaizePropertyChanged("PotentialDuplicates");
         }
 
         private void OnSaveSettings(object sender, RoutedEventArgs e)
         {
             _settings.MovieScanPaths = MovieScanPaths.ToList();
             SettingsHelper.SaveSettings(_settings);
+            DataHelper.SaveData(PotentialMoviePaths);
         }
     }
 

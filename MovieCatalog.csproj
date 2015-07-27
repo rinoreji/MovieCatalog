@@ -60,7 +60,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Algorithms\LevenshteinDistance.cs" />
     <Compile Include="DataTypes\GenericKeyValuePair.cs" />
+    <Compile Include="DataTypes\MediaPathInfo.cs" />
+    <Compile Include="DataTypes\MovieDuplicateInfo.cs" />
     <Compile Include="DataTypes\MovieTaskProgress.cs" />
     <Compile Include="DataTypes\UIDataBase.cs" />
     <Compile Include="DelegateCommand.cs" />

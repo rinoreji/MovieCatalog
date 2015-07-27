@@ -25,8 +25,17 @@ namespace MovieCatalog.Logic
             var sanitizedData = rawName.Normalize().Replace('.', ' ');// normalized and replaced . with <space>
 
             RegexOptions regexOptions = RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace;
-            Regex regex = new Regex(regexPattern, regexOptions);
+
+            var specialPattern = "^(\\[.*\\])(.*)$";// some name comes like => "[junk data] movie name"
+            Regex regex = new Regex(specialPattern, regexOptions);
             var match = regex.Match(sanitizedData);
+            if (match.Success && match.Groups.Count == 3)
+            {
+                sanitizedData = match.Groups[2].Value;
+            }
+
+            regex = new Regex(regexPattern, regexOptions);
+            match = regex.Match(sanitizedData);
 
             if (match.Success)
                 sanitizedData = sanitizedData.Substring(0, match.Index);
